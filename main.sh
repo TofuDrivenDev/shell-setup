@@ -2,11 +2,11 @@
 
 # Determine the package manager based on the OS
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    if [ -f /etc/debian_version ]; then
+    if [[ -f /etc/debian_version ]]; then
         PACKAGE_MANAGER="apt"
         sudo apt update
-    elif [ -f /etc/redhat-release ]; then
-        PACKAGE_MANAGER="yum"
+    elif [[ -f /etc/redhat-release ]]; then
+        PACKAGE_MANAGER="yum -y"
         sudo yum update -y
     else
         echo "Unsupported Linux distribution. Please configure the package manager manually."
@@ -27,7 +27,7 @@ fi
 # Check if zsh is installed
 if ! command -v zsh &> /dev/null; then
     echo "zsh is not installed. Installing zsh..."
-    sudo $PACKAGE_MANAGER install -y zsh
+    sudo $PACKAGE_MANAGER install zsh
     else
         echo "Unsupported OS. Please install zsh manually."
         exit 1
@@ -37,7 +37,7 @@ else
 fi
 
 # Install Oh My Zsh if not already installed
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
+if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
     echo "Oh My Zsh is not installed. Installing Oh My Zsh..."
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     echo "Oh My Zsh installation complete."
