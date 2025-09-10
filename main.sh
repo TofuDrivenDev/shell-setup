@@ -24,23 +24,18 @@ else
     exit 1
 fi
 
-# Check if zsh is installed
+# Install zsh
 if ! command -v zsh &> /dev/null; then
     echo "zsh is not installed. Installing zsh..."
     sudo $PACKAGE_MANAGER install zsh
-    else
-        echo "Unsupported OS. Please install zsh manually."
-        exit 1
-    fi
 else
     echo "zsh is already installed."
 fi
 
-# Install Oh My Zsh if not already installed
+# Install Oh My Zsh
 if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
     echo "Oh My Zsh is not installed. Installing Oh My Zsh..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-    echo "Oh My Zsh installation complete."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 else
     echo "Oh My Zsh is already installed."
 fi
