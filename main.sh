@@ -61,6 +61,14 @@ else
     echo "autojump is already installed."
 fi
 
+# Install autoenv
+if ! command -v autoenv &> /dev/null; then
+    echo "Installing autoenv..."
+    curl -#fLo- 'https://raw.githubusercontent.com/hyperupcall/autoenv/main/scripts/install.sh' | sh
+else
+    echo "autoenv is already installed."
+fi
+
 
 # Install Oh My Zsh
 if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
@@ -74,7 +82,7 @@ fi
 # Setup Oh My Zsh
 if [[ -d "$HOME/.oh-my-zsh" ]]; then
     # Setup plugins
-    PLUGINS="alias-finder autojump git"
+    PLUGINS="alias-finder autoenv autojump git"
     sed -i '' '/^plugins=/s/([^)]*)/('"$PLUGINS"')/' "$HOME/.zshrc"
     echo "Plugins installed and added to .zshrc"
 
