@@ -50,7 +50,7 @@ if ! command -v rg &> /dev/null; then
         sudo yum-config-manager --add-repo=https://copr.fedorainfracloud.org/coprs/carlwgeorge/ripgrep/repo/epel-7/carlwgeorge-ripgrep-epel-7.repo
         sudo yum install ripgrep
     else
-        $PKG_CMD ripgrep
+        $PKG_CMD install ripgrep
     fi
 else
     echo "ripgrep is already installed."
