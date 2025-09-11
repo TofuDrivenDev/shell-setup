@@ -21,13 +21,19 @@ install_package_if_missing() {
 }
 
 # Helper function to ensure a line exists in a file.
-# Idempotent and handles the "no trailing newline" edge case.
+#
 # Usage: ensure_line_in_file <line_to_add> <file_path>
 ensure_line_in_file() {
     local line="$1"
     local file="$2"
+
     if ! grep -qF "$line" "$file"; then
-        printf '\n%s\n' "$line" >> "$file"
+        # If the file is missing a trailing newline, add one first.
+        if [ -s "$file" ] && [ "$(tail -c1 "$file")" != "" ]; then    
+            echo "" >> "$file"
+        fi
+        
+        echo "$line" >> "$file"
     fi
 }
 
@@ -159,7 +165,7 @@ configure_oh_my_zsh() {
     # Setup zoxide ()
     # https://github.com/ajeetdsouza/zoxide
     install_package_if_missing "zoxide" "zoxide"
-    ensure_line_in_file 'eval "$(zoxide init zsh)"' "$zshrc_file" # This must be the last line of .zshrc
+    ensure_line_in_file 'eval "$(zoxide init zsh)" # This must be the last line of .zshrc' "$zshrc_file" 
     
     echo -e "${SUCCESS}✅ Oh My Zsh configured.${RESET}"
 }
