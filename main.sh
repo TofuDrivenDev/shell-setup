@@ -97,7 +97,7 @@ fi
 # Setup Oh My Zsh
 if [[ -d "$HOME/.oh-my-zsh" ]]; then
     # Setup plugins
-    PLUGINS="alias-finder autoenv autojump bgnotify git"
+    PLUGINS="alias-finder autoenv autojump bgnotify colored-man-pages command-not-found gh git git-auto-fetch gradle node npm nvm pip pipenv safe-paste ssh vscode yarn zoxide zsh-interactive-cd"
     sed -i '' '/^plugins=/s#([^)]*)#('"$PLUGINS"')#' "$HOME/.zshrc"
     echo "Setup plugins ok"
 
@@ -123,7 +123,40 @@ if [[ -d "$HOME/.oh-my-zsh" ]]; then
         echo "Setup alias-finder ok"
     }
     setup_alias_finder
+
+
+    # Install fzf https://github.com/junegunn/fzf#installation
+    setup_fzf() {
+        if ! command -v fzf &> /dev/null; then
+            echo "Installing fzf..."
+            $PKG_CMD install fzf
+
+            local cfg='source <(fzf --zsh)'
+            if ! grep -qF "$cfg" "$HOME/.zshrc"; then
+                printf '\n%s\n' "$cfg" >> "$HOME/.zshrc"
+            fi
+        else
+            echo "fzf is already installed."
+        fi
+    }
+    setup_fzf
     
 
-    
+    # Install zoxide https://github.com/ajeetdsouza/zoxide
+    setup_zoxide() {
+        if ! command -v zoxide &> /dev/null; then
+            echo "Installing zoxide..."
+            $PKG_CMD install zoxide
+
+            # This must be the last line of .zshrc
+            local cfg='eval "$(zoxide init zsh)"'
+            if ! grep -qF "$cfg" "$HOME/.zshrc"; then
+                printf '\n%s\n' "$cfg" >> "$HOME/.zshrc"
+            fi
+        else
+            echo "zoxide is already installed."
+        fi
+    }
+    setup_zoxide
+
 fi
