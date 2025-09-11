@@ -68,7 +68,7 @@ else
 fi
 
 # Install autoenv
-if ! command -v autoenv &> /dev/null; then
+if ! grep -q "autoenv/activate.sh" "$HOME/.zshrc"; then
     echo "Installing autoenv..."
     curl -#fLo- 'https://raw.githubusercontent.com/hyperupcall/autoenv/main/scripts/install.sh' | sh
 else
