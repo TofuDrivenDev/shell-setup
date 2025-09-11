@@ -50,6 +50,17 @@ else
 fi
 
 
+# Install autojump
+if ! command -v autojump &> /dev/null; then
+    # TODO: debian needs manual activation
+    # https://github.com/wting/autojump#installation
+    echo "Installing autojump..."
+    $PACKAGE_MANAGER install autojump 
+else
+    echo "autojump is already installed."
+fi
+
+
 # Install Oh My Zsh
 if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
     echo "Installing Oh My Zsh..."
