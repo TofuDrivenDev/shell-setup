@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Determine the package manager based on the OS
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
