@@ -76,6 +76,15 @@ else
 fi
 
 
+# Install terminal-notifier (for bgnotifier)
+if ! command -v terminal-notifier &> /dev/null && [[ "$PKG_MGR" == "brew" ]]; then
+    echo "Installing terminal-notifier..."
+    $PKG_CMD install terminal-notifier
+else
+    echo "terminal-notifier is already installed."
+fi
+
+
 # Install Oh My Zsh
 if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
     echo "Installing Oh My Zsh..."
@@ -88,7 +97,7 @@ fi
 # Setup Oh My Zsh
 if [[ -d "$HOME/.oh-my-zsh" ]]; then
     # Setup plugins
-    PLUGINS="alias-finder autoenv autojump git"
+    PLUGINS="alias-finder autoenv autojump bgnotify git"
     sed -i '' '/^plugins=/s#([^)]*)#('"$PLUGINS"')#' "$HOME/.zshrc"
     echo "Setup plugins ok"
 
