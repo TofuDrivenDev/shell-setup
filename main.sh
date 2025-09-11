@@ -74,8 +74,8 @@ fi
 # Setup Oh My Zsh
 if [[ -d "$HOME/.oh-my-zsh" ]]; then
     # Setup plugins
-    PLUGINS="alias-tips autojump git"
-    sed -i '' "/^plugins=/s/([^)]*)/($PLUGINS)/" "$HOME/.zshrc"
+    PLUGINS="alias-finder autojump git"
+    sed -i '' '/^plugins=/s/([^)]*)/('"$PLUGINS"')/' "$HOME/.zshrc"
     echo "Plugins installed and added to .zshrc"
 
     # Setup theme
