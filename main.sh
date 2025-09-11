@@ -89,13 +89,32 @@ fi
 if [[ -d "$HOME/.oh-my-zsh" ]]; then
     # Setup plugins
     PLUGINS="alias-finder autoenv autojump git"
-    sed -i '' '/^plugins=/s/([^)]*)/('"$PLUGINS"')/' "$HOME/.zshrc"
-    echo "Plugins installed and added to .zshrc"
+    sed -i '' '/^plugins=/s#([^)]*)#('"$PLUGINS"')#' "$HOME/.zshrc"
+    echo "Setup plugins ok"
 
     # Setup theme
     # risto re5et pygmalion obraun michelebologna lukerandall kafeitu
-    sed -i '' '/^ZSH_THEME=/s/"[^"]*"/"pygmalion"/' "$HOME/.zshrc"
-    echo "Theme set to pygmalion in .zshrc."
-else
-    echo "Oh My Zsh is already installed."
+    sed -i '' '/^ZSH_THEME=/s#"[^"]*"#"pygmalion"#' "$HOME/.zshrc"
+    echo "Setup theme ok"
+
+    setup_alias_finder() {
+        local settings=("autoload" "longer" "exact" "cheaper")
+        for setting in "${settings[@]}"; do
+            local grep_cfg="zstyle ':omz:plugins:alias-finder' $setting"
+            local enable_cfg="$grep_cfg yes"
+
+            # Check if a line for this setting already exists in the file.
+            if grep -qF "$grep_cfg" "$HOME/.zshrc"; then
+                sed -i '' "s#$grep_cfg.*#$enable_cfg#" "$HOME/.zshrc"
+            else
+                echo "$enable_cfg" >> "$HOME/.zshrc"
+            fi
+        done
+
+        echo "Setup alias-finder ok"
+    }
+    setup_alias_finder
+    
+
+    
 fi
