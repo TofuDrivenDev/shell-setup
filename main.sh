@@ -1,50 +1,76 @@
 #!/bin/bash
 set -e
 
+# Add some color to the output for better readability
+INFO="\033[1;34m" # Blue
+SUCCESS="\033[1;32m" # Green
+RESET="\033[0m"
+
+# Helper function to check for a command and install a package if it's missing.
+# Usage: install_package_if_missing <command_to_check> <package_to_install>
+install_package_if_missing() {
+    local cmd_check="$1"
+    local pkg_name="$2"
+
+    if command -v "$cmd_check" &> /dev/null; then
+        echo -e "${SUCCESS}✅ $pkg_name is already installed.${RESET}"
+    else
+        echo -e "${INFO}Installing $pkg_name...${RESET}"
+        $PKG_CMD install "$pkg_name"
+    fi
+}
+
+# Helper function to ensure a line exists in a file.
+# Idempotent and handles the "no trailing newline" edge case.
+# Usage: ensure_line_in_file <line_to_add> <file_path>
+ensure_line_in_file() {
+    local line="$1"
+    local file="$2"
+    if ! grep -qF "$line" "$file"; then
+        printf '\n%s\n' "$line" >> "$file"
+    fi
+}
+
+
 # Determine the package manager based on the OS
 if [[ -f /etc/debian_version ]]; then
-    echo "Package manager set to apt"
     PKG_MGR="apt"
     PKG_CMD="sudo apt"
 elif [[ -f /etc/redhat-release ]]; then
-    echo "Package manager set to yum"
     PKG_MGR="yum"
     PKG_CMD="sudo yum -y"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     if ! command -v brew &> /dev/null; then
-        echo "Installing Homebrew..."
+        echo -e "${INFO}Installing Homebrew...${RESET}"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
 
-    echo "Package manager set to brew"
     PKG_MGR="brew"
     PKG_CMD="brew"
 else
     echo "Unsupported OS. Please configure the package manager manually."
     exit 1
 fi
+echo -e "${INFO}Package manager set to: $PKG_MGR${RESET}"
 
 
 # Update package registry
 if [[ "$1" == "-u" ]]; then
-    echo "Updating package manager..."
+    echo -e "${INFO}Updating package manager...${RESET}"
     $PKG_CMD update
 fi
 
 
-# Install zsh
-if ! command -v zsh &> /dev/null; then
-    echo "Installing zsh..."
-    $PKG_CMD install zsh
-else
-    echo "zsh is already installed."
-fi
+install_package_if_missing "zsh" "zsh"
 
 
-# Install ripgrep (for alias-finder)
-if ! command -v rg &> /dev/null; then
-    echo "Installing ripgrep..."
-
+install_ripgrep() {
+    if command -v rg &> /dev/null; then
+        echo -e "${SUCCESS}✅ ripgrep is already installed.${RESET}"
+        return
+    fi
+    
+    echo -e "${INFO}Installing ripgrep...${RESET}"
     if [[ "$PKG_MGR" == "yum" ]]; then
         sudo yum install -y yum-utils
         sudo yum-config-manager --add-repo=https://copr.fedorainfracloud.org/coprs/carlwgeorge/ripgrep/repo/epel-7/carlwgeorge-ripgrep-epel-7.repo
@@ -52,111 +78,89 @@ if ! command -v rg &> /dev/null; then
     else
         $PKG_CMD install ripgrep
     fi
-else
-    echo "ripgrep is already installed."
-fi
+}
+install_ripgrep
 
 
-# Install autojump
-if ! command -v autojump &> /dev/null; then
+install_autojump() {
+     if command -v autojump &> /dev/null; then
+        echo -e "${SUCCESS}✅ autojump is already installed.${RESET}"
+        return
+    fi
+
+    echo -e "${INFO}Installing autojump...${RESET}"
     # TODO: debian needs manual activation
     # https://github.com/wting/autojump#installation
-    echo "Installing autojump..."
     $PKG_CMD install autojump 
-else
-    echo "autojump is already installed."
-fi
+}
+install_autojump
 
-# Install autoenv
-if ! grep -q "autoenv/activate.sh" "$HOME/.zshrc"; then
-    echo "Installing autoenv..."
+
+install_autoenv() {
+    if grep -q "autoenv/activate.sh" "$HOME/.zshrc"; then
+        echo -e "${SUCCESS}✅ autoenv is already installed.${RESET}"
+        return
+    fi
+
+    echo -e "${INFO}Installing autoenv...${RESET}"
     curl -#fLo- 'https://raw.githubusercontent.com/hyperupcall/autoenv/main/scripts/install.sh' | sh
-else
-    echo "autoenv is already installed."
-fi
+}
+install_autoenv
 
 
-# Install terminal-notifier (for bgnotifier)
-if ! command -v terminal-notifier &> /dev/null && [[ "$PKG_MGR" == "brew" ]]; then
-    echo "Installing terminal-notifier..."
-    $PKG_CMD install terminal-notifier
-else
-    echo "terminal-notifier is already installed."
-fi
+install_terminal_notifier() {
+    if [[ "$PKG_MGR" == "brew" ]]; then
+        install_package_if_missing "terminal-notifier" "terminal-notifier"
+    fi
+}
+install_terminal_notifier
 
 
-# Install Oh My Zsh
-if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
-    echo "Installing Oh My Zsh..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-else
-    echo "Oh My Zsh is already installed."
-fi
+install_oh_my_zsh() {
+    if [[ -d "$HOME/.oh-my-zsh" ]]; then
+        echo -e "${SUCCESS}✅ Oh My Zsh is already installed.${RESET}"
+        return
+    fi
+
+    echo -e "${INFO}Installing Oh My Zsh...${RESET}"
+    # The installer might try to run zsh; pass a no-op command to prevent it from exiting the script
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+}
+install_oh_my_zsh
 
 
-# Setup Oh My Zsh
-if [[ -d "$HOME/.oh-my-zsh" ]]; then
-    # Setup plugins
-    PLUGINS="alias-finder autoenv autojump bgnotify colored-man-pages command-not-found gh git git-auto-fetch gradle node npm nvm pip pipenv safe-paste ssh vscode yarn zoxide zsh-interactive-cd"
-    sed -i '' '/^plugins=/s#([^)]*)#('"$PLUGINS"')#' "$HOME/.zshrc"
-    echo "Setup plugins ok"
+configure_oh_my_zsh() {
+    if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+        return # Don't configure if not installed
+    fi
+    
+    echo -e "${INFO}Configuring Oh My Zsh...${RESET}"
+    local zshrc_file="$HOME/.zshrc"
 
     # Setup theme
     # risto re5et pygmalion obraun michelebologna lukerandall kafeitu
-    sed -i '' '/^ZSH_THEME=/s#"[^"]*"#"pygmalion"#' "$HOME/.zshrc"
-    echo "Setup theme ok"
-
-    setup_alias_finder() {
-        local settings=("autoload" "longer" "exact" "cheaper")
-        for setting in "${settings[@]}"; do
-            local grep_cfg="zstyle ':omz:plugins:alias-finder' $setting"
-            local enable_cfg="$grep_cfg yes"
-
-            # Check if a line for this setting already exists in the file.
-            if grep -qF "$grep_cfg" "$HOME/.zshrc"; then
-                sed -i '' "s#$grep_cfg.*#$enable_cfg#" "$HOME/.zshrc"
-            else
-                echo "$enable_cfg" >> "$HOME/.zshrc"
-            fi
-        done
-
-        echo "Setup alias-finder ok"
-    }
-    setup_alias_finder
-
-
-    # Install fzf https://github.com/junegunn/fzf#installation
-    setup_fzf() {
-        if ! command -v fzf &> /dev/null; then
-            echo "Installing fzf..."
-            $PKG_CMD install fzf
-
-            local cfg='source <(fzf --zsh)'
-            if ! grep -qF "$cfg" "$HOME/.zshrc"; then
-                printf '\n%s\n' "$cfg" >> "$HOME/.zshrc"
-            fi
-        else
-            echo "fzf is already installed."
-        fi
-    }
-    setup_fzf
+    sed -i '' 's#^ZSH_THEME="[^"]*"#ZSH_THEME="pygmalion"#' "$zshrc_file"
     
+    # Setup plugins
+    local plugins_line='plugins=(alias-finder autoenv autojump bgnotify colored-man-pages command-not-found gh git git-auto-fetch gradle node npm nvm pip pipenv safe-paste ssh vscode yarn zoxide zsh-interactive-cd)'
+    sed -i '' "s#^plugins=(.*)#$plugins_line#" "$zshrc_file"
 
-    # Install zoxide https://github.com/ajeetdsouza/zoxide
-    setup_zoxide() {
-        if ! command -v zoxide &> /dev/null; then
-            echo "Installing zoxide..."
-            $PKG_CMD install zoxide
-
-            # This must be the last line of .zshrc
-            local cfg='eval "$(zoxide init zsh)"'
-            if ! grep -qF "$cfg" "$HOME/.zshrc"; then
-                printf '\n%s\n' "$cfg" >> "$HOME/.zshrc"
-            fi
-        else
-            echo "zoxide is already installed."
-        fi
-    }
-    setup_zoxide
-
-fi
+    # Setup alias-finder
+    local settings=("autoload" "longer" "exact" "cheaper")
+    for setting in "${settings[@]}"; do
+        ensure_line_in_file "zstyle ':omz:plugins:alias-finder' $setting yes" "$zshrc_file"
+    done
+    
+    # Setup zsh-interactive-cd 
+    # https://github.com/junegunn/fzf#installation
+    install_package_if_missing "fzf" "fzf"
+    ensure_line_in_file 'source <(fzf --zsh)' "$zshrc_file"
+    
+    # Setup zoxide ()
+    # https://github.com/ajeetdsouza/zoxide
+    install_package_if_missing "zoxide" "zoxide"
+    ensure_line_in_file 'eval "$(zoxide init zsh)"' "$zshrc_file" # This must be the last line of .zshrc
+    
+    echo -e "${SUCCESS}✅ Oh My Zsh configured.${RESET}"
+}
+configure_oh_my_zsh
