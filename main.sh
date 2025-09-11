@@ -2,25 +2,14 @@
 set -e
 
 # Determine the package manager based on the OS
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    if [[ -f /etc/debian_version ]]; then
-        echo "Package manager set to apt"
-        PACKAGE_MANAGER="sudo apt"
-
-        if [[ "$1" == "-u" ]]; then
-            sudo apt update
-        fi
-    elif [[ -f /etc/redhat-release ]]; then
-        echo "Package manager set to yum"
-        PACKAGE_MANAGER="sudo yum -y"
-        
-        if [[ "$1" == "-u" ]]; then
-            sudo yum update -y
-        fi
-    else
-        echo "Unsupported Linux distribution. Please configure the package manager manually."
-        exit 1
-    fi
+if [[ -f /etc/debian_version ]]; then
+    echo "Package manager set to apt"
+    PKG_MGR="apt"
+    PKG_CMD="sudo apt"
+elif [[ -f /etc/redhat-release ]]; then
+    echo "Package manager set to yum"
+    PKG_MGR="yum"
+    PKG_CMD="sudo yum -y"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     if ! command -v brew &> /dev/null; then
         echo "Installing Homebrew..."
@@ -28,7 +17,8 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
     fi
 
     echo "Package manager set to brew"
-    PACKAGE_MANAGER="brew"
+    PKG_MGR="brew"
+    PKG_CMD="brew"
 else
     echo "Unsupported OS. Please configure the package manager manually."
     exit 1
@@ -38,16 +28,32 @@ fi
 # Update package registry
 if [[ "$1" == "-u" ]]; then
     echo "Updating package manager..."
-    $PACKAGE_MANAGER update
+    $PKG_CMD update
 fi
 
 
 # Install zsh
 if ! command -v zsh &> /dev/null; then
     echo "Installing zsh..."
-    $PACKAGE_MANAGER install zsh
+    $PKG_CMD install zsh
 else
     echo "zsh is already installed."
+fi
+
+
+# Install ripgrep (for alias-finder)
+if ! command -v rg &> /dev/null; then
+    echo "Installing ripgrep..."
+
+    if [[ "$PKG_MGR" == "yum" ]]; then
+        sudo yum install -y yum-utils
+        sudo yum-config-manager --add-repo=https://copr.fedorainfracloud.org/coprs/carlwgeorge/ripgrep/repo/epel-7/carlwgeorge-ripgrep-epel-7.repo
+        sudo yum install ripgrep
+    else
+        $PKG_CMD ripgrep
+    fi
+else
+    echo "ripgrep is already installed."
 fi
 
 
@@ -56,7 +62,7 @@ if ! command -v autojump &> /dev/null; then
     # TODO: debian needs manual activation
     # https://github.com/wting/autojump#installation
     echo "Installing autojump..."
-    $PACKAGE_MANAGER install autojump 
+    $PKG_CMD install autojump 
 else
     echo "autojump is already installed."
 fi
