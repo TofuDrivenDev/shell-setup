@@ -4,6 +4,7 @@ set -e
 # Add some color to the output for better readability
 INFO="\033[1;34m" # Blue
 SUCCESS="\033[1;32m" # Green
+ERR="\033[1;31m" # Red
 RESET="\033[0m"
 
 # Helper function to check for a command and install a package if it's missing.
@@ -138,10 +139,11 @@ install_oh_my_zsh
 
 configure_oh_my_zsh() {
     if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
-        return # Don't configure if not installed
+        echo -e "${ERR}❌ ~/.oh-my-zsh is missing.${RESET}"
+        exit 1
     fi
     
-    echo -e "${INFO}Configuring Oh My Zsh...${RESET}"
+    echo -e "${INFO}🛠️ Configuring Oh My Zsh...${RESET}"
     local zshrc_file="$HOME/.zshrc"
 
     # Setup theme
