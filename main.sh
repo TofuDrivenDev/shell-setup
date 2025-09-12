@@ -80,6 +80,18 @@ install_tldr() { # https://github.com/tldr-pages/tldr#how-do-i-use-it
 install_tldr
 
 
+
+install_jq() { # https://github.com/jqlang/jq#installation
+    if ! command -v jq &> /dev/null; then
+        echo -e "${INFO}🛠️ Installing jq...${RESET}"
+        $PKG_CMD install jq
+    fi
+
+    echo -e "${SUCCESS}✅ jq has been installed.${RESET}"
+}
+install_jq
+
+
 install_package_if_missing "zsh" "zsh"
 
 
