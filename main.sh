@@ -80,6 +80,15 @@ install_tldr() { # https://github.com/tldr-pages/tldr#how-do-i-use-it
 install_tldr
 
 
+install_bat() { # https://github.com/sharkdp/bat#installation
+    if ! command -v bat &> /dev/null; then
+        echo -e "${INFO}🛠️ Installing bat...${RESET}"
+        $PKG_CMD install bat
+    fi
+
+    echo -e "${SUCCESS}✅ bat has been installed.${RESET}"
+}
+install_bat
 
 install_jq() { # https://github.com/jqlang/jq#installation
     if ! command -v jq &> /dev/null; then
