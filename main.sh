@@ -69,6 +69,17 @@ if [[ "$1" == "-u" ]]; then
 fi
 
 
+install_tldr() { # https://github.com/tldr-pages/tldr#how-do-i-use-it
+    if ! command -v tldr &> /dev/null; then
+        echo -e "${INFO}🛠️ Installing tldr...${RESET}"
+        $PKG_CMD install tldr
+    fi
+
+    echo -e "${SUCCESS}✅ tldr has been installed.${RESET}"
+}
+install_tldr
+
+
 install_package_if_missing "zsh" "zsh"
 
 
