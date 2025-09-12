@@ -8,10 +8,10 @@ ERR="\033[1;31m" # Red
 RESET="\033[0m"
 
 # Helper function to check for a command and install a package if it's missing.
-# Usage: install_package_if_missing <command_to_check> <package_to_install>
-install_package_if_missing() {
+# Usage: install_package <command_to_check> [package_to_install]
+install_package() {
     local cmd_check="$1"
-    local pkg_name="$2"
+    local pkg_name="${2:-$cmd_check}"
 
     if ! command -v "$cmd_check" &> /dev/null; then
         echo -e "${INFO}🛠️ Installing $pkg_name...${RESET}"
@@ -69,39 +69,30 @@ if [[ "$1" == "-u" ]]; then
 fi
 
 
-install_tldr() { # https://github.com/tldr-pages/tldr#how-do-i-use-it
-    if ! command -v tldr &> /dev/null; then
-        echo -e "${INFO}🛠️ Installing tldr...${RESET}"
-        $PKG_CMD install tldr
+install_package tldr # https://github.com/tldr-pages/tldr#how-do-i-use-it
+install_package bat # https://github.com/sharkdp/bat#installation
+install_package lazygit # https://github.com/jesseduffield/lazygit#installation
+install_package tmux # https://github.com/tmux/tmux#installation
+install_package jq # https://github.com/jqlang/jq#installation
+
+install_fd() { # https://github.com/sharkdp/fd#installation
+    if ! command -v fd &> /dev/null; then
+        echo -e "${INFO}🛠️ Installing fd...${RESET}"
+
+        if [[ "$PKG_MGR" == "apt" ]]; then
+            $PKG_CMD install fd-find
+            ln -s "$(which fdfind)" /usr/local/bin/fd # fd -> fdfind
+        else
+            $PKG_CMD install fd
+        fi
     fi
 
-    echo -e "${SUCCESS}✅ tldr has been installed.${RESET}"
+    echo -e "${SUCCESS}✅ fd has been installed.${RESET}"
 }
-install_tldr
+install_fd
 
 
-install_bat() { # https://github.com/sharkdp/bat#installation
-    if ! command -v bat &> /dev/null; then
-        echo -e "${INFO}🛠️ Installing bat...${RESET}"
-        $PKG_CMD install bat
-    fi
-
-    echo -e "${SUCCESS}✅ bat has been installed.${RESET}"
-}
-install_bat
-
-install_jq() { # https://github.com/jqlang/jq#installation
-    if ! command -v jq &> /dev/null; then
-        echo -e "${INFO}🛠️ Installing jq...${RESET}"
-        $PKG_CMD install jq
-    fi
-
-    echo -e "${SUCCESS}✅ jq has been installed.${RESET}"
-}
-install_jq
-
-
-install_package_if_missing "zsh" "zsh"
+install_package zsh
 
 
 install_ripgrep() {
@@ -147,12 +138,9 @@ install_autoenv
 
 
 install_terminal_notifier() {
-    if ! [[ "$PKG_MGR" == "brew" ]]; then
-        echo -e "${INFO}🛠️ Installing terminal-notifier...${RESET}"
-        install_package_if_missing "terminal-notifier" "terminal-notifier"
+    if [[ "$PKG_MGR" == "brew" ]]; then
+        install_package terminal-notifier
     fi
-
-    echo -e "${SUCCESS}✅ terminal-notifier has been installed.${RESET}"
 }
 install_terminal_notifier
 
@@ -194,12 +182,12 @@ configure_oh_my_zsh() {
     
     # Setup zsh-interactive-cd 
     # https://github.com/junegunn/fzf#installation
-    install_package_if_missing "fzf" "fzf"
+    install_package fzf
     ensure_line_in_file 'source <(fzf --zsh)' "$zshrc_file"
     
     # Setup zoxide ()
     # https://github.com/ajeetdsouza/zoxide
-    install_package_if_missing "zoxide" "zoxide"
+    install_package zoxide
     ensure_line_in_file 'eval "$(zoxide init zsh)" # This must be the last line of .zshrc' "$zshrc_file" 
     
     echo -e "${SUCCESS}✅ Oh My Zsh configured.${RESET}"
