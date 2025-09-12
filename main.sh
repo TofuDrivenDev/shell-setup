@@ -69,11 +69,14 @@ if [[ "$1" == "-u" ]]; then
 fi
 
 
-install_package tldr # https://github.com/tldr-pages/tldr#how-do-i-use-it
-install_package bat # https://github.com/sharkdp/bat#installation
-install_package lazygit # https://github.com/jesseduffield/lazygit#installation
-install_package tmux # https://github.com/tmux/tmux#installation
-install_package jq # https://github.com/jqlang/jq#installation
+install_package 'tldr' # https://github.com/tldr-pages/tldr#how-do-i-use-it
+install_package 'bat' # https://github.com/sharkdp/bat#installation
+install_package 'lazygit' # https://github.com/jesseduffield/lazygit#installation
+install_package 'tmux' # https://github.com/tmux/tmux#installation
+install_package 'jq' # https://github.com/jqlang/jq#installation
+install_package 'fzf' # https://github.com/junegunn/fzf#installation
+install_package 'zoxide' # https://github.com/ajeetdsouza/zoxide#installation
+
 
 install_fd() { # https://github.com/sharkdp/fd#installation
     if ! command -v fd &> /dev/null; then
@@ -92,10 +95,7 @@ install_fd() { # https://github.com/sharkdp/fd#installation
 install_fd
 
 
-install_package zsh
-
-
-install_ripgrep() {
+install_ripgrep() { # https://github.com/BurntSushi/ripgrep#installation
     if ! command -v rg &> /dev/null; then
         echo -e "${INFO}🛠️ Installing ripgrep...${RESET}"
 
@@ -113,7 +113,7 @@ install_ripgrep() {
 install_ripgrep
 
 
-install_autojump() {
+install_autojump() { # https://github.com/wting/autojump#installation
      if ! command -v autojump &> /dev/null; then
         echo -e "${INFO}🛠️ Installing autojump...${RESET}"
         # TODO: debian needs manual activation
@@ -126,7 +126,7 @@ install_autojump() {
 install_autojump
 
 
-install_autoenv() {
+install_autoenv() { # https://github.com/hyperupcall/autoenv#installation-automated
     if ! grep -q "autoenv/activate.sh" "$HOME/.zshrc"; then
         echo -e "${INFO}🛠️ Installing autoenv...${RESET}"
         curl -#fLo- 'https://raw.githubusercontent.com/hyperupcall/autoenv/main/scripts/install.sh' | sh
@@ -137,15 +137,17 @@ install_autoenv() {
 install_autoenv
 
 
-install_terminal_notifier() {
+install_terminal_notifier() { # https://github.com/julienXX/terminal-notifier#download
     if [[ "$PKG_MGR" == "brew" ]]; then
-        install_package terminal-notifier
+        install_package 'terminal-notifier'
     fi
 }
 install_terminal_notifier
 
 
-install_oh_my_zsh() {
+install_oh_my_zsh() { # https://github.com/ohmyzsh/ohmyzsh/wiki
+    install_package 'zsh' # https://github.com/ohmyzsh/ohmyzsh/wiki/Installing-ZSH
+
     if ! [[ -d "$HOME/.oh-my-zsh" ]]; then
         echo -e "${INFO}🛠️ Installing Oh My Zsh...${RESET}"
         # The installer might try to run zsh; pass a no-op command to prevent it from exiting the script
@@ -158,38 +160,34 @@ install_oh_my_zsh
 
 
 configure_oh_my_zsh() {
-    if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
-        echo -e "${ERR}❌ ~/.oh-my-zsh is missing.${RESET}"
+    local zshrc="$HOME/.zshrc"
+    if ! [[ -f "$zshrc" ]]; then
+        echo -e "${ERR}❌ $zshrc is missing.${RESET}"
         exit 1
     fi
     
     echo -e "${INFO}🛠️ Configuring Oh My Zsh...${RESET}"
-    local zshrc_file="$HOME/.zshrc"
-
+    
     # Setup theme
     # risto re5et pygmalion obraun michelebologna lukerandall kafeitu
-    sed -i '' 's#^ZSH_THEME="[^"]*"#ZSH_THEME="pygmalion"#' "$zshrc_file"
+    sed -i '' 's#^ZSH_THEME="[^"]*"#ZSH_THEME="pygmalion"#' "$zshrc"
     
     # Setup plugins
     local plugins_line='plugins=(alias-finder autoenv autojump bgnotify colored-man-pages command-not-found gh git git-auto-fetch gradle node npm nvm pip pipenv safe-paste ssh vscode yarn zoxide zsh-interactive-cd)'
-    sed -i '' "s#^plugins=(.*)#$plugins_line#" "$zshrc_file"
+    sed -i '' "s#^plugins=(.*)#$plugins_line#" "$zshrc"
 
     # Setup alias-finder
     local settings=("autoload" "longer" "exact" "cheaper")
     for setting in "${settings[@]}"; do
-        ensure_line_in_file "zstyle ':omz:plugins:alias-finder' $setting yes" "$zshrc_file"
+        ensure_line_in_file "zstyle ':omz:plugins:alias-finder' $setting yes" "$zshrc"
     done
     
     # Setup zsh-interactive-cd 
-    # https://github.com/junegunn/fzf#installation
-    install_package fzf
-    ensure_line_in_file 'source <(fzf --zsh)' "$zshrc_file"
+    ensure_line_in_file 'source <(fzf --zsh)' "$zshrc"
     
-    # Setup zoxide ()
-    # https://github.com/ajeetdsouza/zoxide
-    install_package zoxide
-    ensure_line_in_file 'eval "$(zoxide init zsh)" # This must be the last line of .zshrc' "$zshrc_file" 
+    # Setup zoxide
+    ensure_line_in_file 'eval "$(zoxide init zsh)" # This must be the last line of .zshrc' "$zshrc" 
     
-    echo -e "${SUCCESS}✅ Oh My Zsh configured.${RESET}"
+    echo -e "${SUCCESS}✅ Oh My Zsh has been configured.${RESET}"
 }
 configure_oh_my_zsh
