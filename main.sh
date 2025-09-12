@@ -12,12 +12,12 @@ install_package_if_missing() {
     local cmd_check="$1"
     local pkg_name="$2"
 
-    if command -v "$cmd_check" &> /dev/null; then
-        echo -e "${SUCCESS}✅ $pkg_name is already installed.${RESET}"
-    else
-        echo -e "${INFO}Installing $pkg_name...${RESET}"
+    if ! command -v "$cmd_check" &> /dev/null; then
+        echo -e "${INFO}🛠️ Installing $pkg_name...${RESET}"
         $PKG_CMD install "$pkg_name"
     fi
+
+    echo -e "${SUCCESS}✅ $pkg_name has been installed.${RESET}"
 }
 
 # Helper function to ensure a line exists in a file.
@@ -47,9 +47,10 @@ elif [[ -f /etc/redhat-release ]]; then
     PKG_CMD="sudo yum -y"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     if ! command -v brew &> /dev/null; then
-        echo -e "${INFO}Installing Homebrew...${RESET}"
+        echo -e "${INFO}🛠️ Installing Homebrew...${RESET}"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
+    echo -e "${SUCCESS}✅ Homebrew has been installed.${RESET}"
 
     PKG_MGR="brew"
     PKG_CMD="brew"
@@ -71,66 +72,66 @@ install_package_if_missing "zsh" "zsh"
 
 
 install_ripgrep() {
-    if command -v rg &> /dev/null; then
-        echo -e "${SUCCESS}✅ ripgrep is already installed.${RESET}"
-        return
+    if ! command -v rg &> /dev/null; then
+        echo -e "${INFO}🛠️ Installing ripgrep...${RESET}"
+
+        if [[ "$PKG_MGR" == "yum" ]]; then
+            sudo yum install -y yum-utils
+            sudo yum-config-manager --add-repo=https://copr.fedorainfracloud.org/coprs/carlwgeorge/ripgrep/repo/epel-7/carlwgeorge-ripgrep-epel-7.repo
+            sudo yum install ripgrep
+        else
+            $PKG_CMD install ripgrep
+        fi
     fi
     
-    echo -e "${INFO}Installing ripgrep...${RESET}"
-    if [[ "$PKG_MGR" == "yum" ]]; then
-        sudo yum install -y yum-utils
-        sudo yum-config-manager --add-repo=https://copr.fedorainfracloud.org/coprs/carlwgeorge/ripgrep/repo/epel-7/carlwgeorge-ripgrep-epel-7.repo
-        sudo yum install ripgrep
-    else
-        $PKG_CMD install ripgrep
-    fi
+    echo -e "${SUCCESS}✅ ripgrep has been installed.${RESET}"
 }
 install_ripgrep
 
 
 install_autojump() {
-     if command -v autojump &> /dev/null; then
-        echo -e "${SUCCESS}✅ autojump is already installed.${RESET}"
-        return
+     if ! command -v autojump &> /dev/null; then
+        echo -e "${INFO}🛠️ Installing autojump...${RESET}"
+        # TODO: debian needs manual activation
+        # https://github.com/wting/autojump#installation
+        $PKG_CMD install autojump 
     fi
 
-    echo -e "${INFO}Installing autojump...${RESET}"
-    # TODO: debian needs manual activation
-    # https://github.com/wting/autojump#installation
-    $PKG_CMD install autojump 
+    echo -e "${SUCCESS}✅ autojump has been installed.${RESET}"
 }
 install_autojump
 
 
 install_autoenv() {
-    if grep -q "autoenv/activate.sh" "$HOME/.zshrc"; then
-        echo -e "${SUCCESS}✅ autoenv is already installed.${RESET}"
-        return
+    if ! grep -q "autoenv/activate.sh" "$HOME/.zshrc"; then
+        echo -e "${INFO}🛠️ Installing autoenv...${RESET}"
+        curl -#fLo- 'https://raw.githubusercontent.com/hyperupcall/autoenv/main/scripts/install.sh' | sh
     fi
 
-    echo -e "${INFO}Installing autoenv...${RESET}"
-    curl -#fLo- 'https://raw.githubusercontent.com/hyperupcall/autoenv/main/scripts/install.sh' | sh
+    echo -e "${SUCCESS}✅ autoenv has been installed.${RESET}"
 }
 install_autoenv
 
 
 install_terminal_notifier() {
-    if [[ "$PKG_MGR" == "brew" ]]; then
+    if ! [[ "$PKG_MGR" == "brew" ]]; then
+        echo -e "${INFO}🛠️ Installing terminal-notifier...${RESET}"
         install_package_if_missing "terminal-notifier" "terminal-notifier"
     fi
+
+    echo -e "${SUCCESS}✅ terminal-notifier has been installed.${RESET}"
 }
 install_terminal_notifier
 
 
 install_oh_my_zsh() {
-    if [[ -d "$HOME/.oh-my-zsh" ]]; then
-        echo -e "${SUCCESS}✅ Oh My Zsh is already installed.${RESET}"
-        return
+    if ! [[ -d "$HOME/.oh-my-zsh" ]]; then
+        echo -e "${INFO}🛠️ Installing Oh My Zsh...${RESET}"
+        # The installer might try to run zsh; pass a no-op command to prevent it from exiting the script
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     fi
 
-    echo -e "${INFO}Installing Oh My Zsh...${RESET}"
-    # The installer might try to run zsh; pass a no-op command to prevent it from exiting the script
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    echo -e "${SUCCESS}✅ Oh My Zsh has been installed.${RESET}"
 }
 install_oh_my_zsh
 
