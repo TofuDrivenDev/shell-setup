@@ -3,7 +3,7 @@ set -e
 
 # Add some color to the output for better readability
 INFO="\033[1;34m" # Blue
-SUCCESS="\033[1;32m" # Green
+OK="\033[1;32m" # Green
 ERR="\033[1;31m" # Red
 RESET="\033[0m"
 
@@ -18,17 +18,17 @@ install_package() {
         $PKG_CMD install "$pkg_name"
     fi
 
-    echo -e "${SUCCESS}✅ $pkg_name has been installed.${RESET}"
+    echo -e "${OK}✅ $pkg_name has been installed.${RESET}"
 }
 
-# Helper function to ensure a line exists in a file.
+# Ensure a line exists in a file.
 #
 # Usage: ensure_line_in_file <line_to_add> <file_path>
 ensure_line_in_file() {
     local line="$1"
     local file="$2"
 
-    if ! grep -qF "$line" "$file"; then
+    if ! grep -qF -- "$line" "$file"; then
         # If the file is missing a trailing newline, add one first.
         if [ -s "$file" ] && [ "$(tail -c1 "$file")" != "" ]; then    
             echo "" >> "$file"
@@ -36,6 +36,22 @@ ensure_line_in_file() {
         
         echo "$line" >> "$file"
     fi
+}
+
+# Remove app from quarantine on macOS
+unquarantine_app() {
+    local app_path="$1"
+
+    if ! [[ -d "$app_path" ]]; then
+        echo -e "${ERR}❌ $app_path does not exist.${RESET}"
+        return 1
+    fi
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo -e "${INFO}🛠️ Removing $app_path from quarantine...${RESET}"
+        xattr -d com.apple.quarantine "$app_path"
+        echo -e "${OK}✅ Removed $app_path from quarantine.${RESET}"
+    fi  
 }
 
 
@@ -51,7 +67,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
         echo -e "${INFO}🛠️ Installing Homebrew...${RESET}"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
-    echo -e "${SUCCESS}✅ Homebrew has been installed.${RESET}"
+    echo -e "${OK}✅ Homebrew has been installed.${RESET}"
 
     PKG_MGR="brew"
     PKG_CMD="brew"
@@ -92,7 +108,7 @@ install_fd() { # https://github.com/sharkdp/fd#installation
         fi
     fi
 
-    echo -e "${SUCCESS}✅ fd has been installed.${RESET}"
+    echo -e "${OK}✅ fd has been installed.${RESET}"
 }
 install_fd
 
@@ -110,7 +126,7 @@ install_ripgrep() { # https://github.com/BurntSushi/ripgrep#installation
         fi
     fi
     
-    echo -e "${SUCCESS}✅ ripgrep has been installed.${RESET}"
+    echo -e "${OK}✅ ripgrep has been installed.${RESET}"
 }
 install_ripgrep
 
@@ -123,7 +139,7 @@ install_autojump() { # https://github.com/wting/autojump#installation
         $PKG_CMD install autojump 
     fi
 
-    echo -e "${SUCCESS}✅ autojump has been installed.${RESET}"
+    echo -e "${OK}✅ autojump has been installed.${RESET}"
 }
 install_autojump
 
@@ -134,7 +150,7 @@ install_autoenv() { # https://github.com/hyperupcall/autoenv#installation-automa
         curl -#fLo- 'https://raw.githubusercontent.com/hyperupcall/autoenv/main/scripts/install.sh' | sh
     fi
 
-    echo -e "${SUCCESS}✅ autoenv has been installed.${RESET}"
+    echo -e "${OK}✅ autoenv has been installed.${RESET}"
 }
 install_autoenv
 
@@ -156,7 +172,7 @@ install_oh_my_zsh() { # https://github.com/ohmyzsh/ohmyzsh/wiki
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     fi
 
-    echo -e "${SUCCESS}✅ Oh My Zsh has been installed.${RESET}"
+    echo -e "${OK}✅ Oh My Zsh has been installed.${RESET}"
 }
 install_oh_my_zsh
 
@@ -190,6 +206,6 @@ configure_oh_my_zsh() {
     # Setup zoxide
     ensure_line_in_file 'eval "$(zoxide init zsh)" # This must be the last line of .zshrc' "$zshrc" 
     
-    echo -e "${SUCCESS}✅ Oh My Zsh has been configured.${RESET}"
+    echo -e "${OK}✅ Oh My Zsh has been configured.${RESET}"
 }
 configure_oh_my_zsh
