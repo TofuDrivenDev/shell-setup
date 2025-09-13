@@ -71,7 +71,9 @@ fi
 
 install_package 'tldr' # https://github.com/tldr-pages/tldr#how-do-i-use-it
 install_package 'bat' # https://github.com/sharkdp/bat#installation
+install_package 'duf' # https://github.com/muesli/duf#installation
 install_package 'lazygit' # https://github.com/jesseduffield/lazygit#installation
+install_package 'lazydocker' # https://github.com/jesseduffield/lazydocker#installation
 install_package 'tmux' # https://github.com/tmux/tmux#installation
 install_package 'jq' # https://github.com/jqlang/jq#installation
 install_package 'fzf' # https://github.com/junegunn/fzf#installation
