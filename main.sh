@@ -96,6 +96,24 @@ install_package 'fzf' # https://github.com/junegunn/fzf#installation
 install_package 'zoxide' # https://github.com/ajeetdsouza/zoxide#installation
 
 
+install_node() {
+    if ! command -v nvm &> /dev/null; then
+        echo -e "${INFO}🛠️ Installing NVM...${RESET}"
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"  # This loads nvm
+    fi
+    echo -e "${OK}✅ NVM has been installed.${RESET}"
+
+    if ! command -v node &> /dev/null; then
+        echo -e "${INFO}🛠️ Installing Node.js...${RESET}"
+        nvm install --lts
+    fi
+    echo -e "${OK}✅ Node.js has been installed.${RESET}"
+}
+install_node
+
+
 install_fd() { # https://github.com/sharkdp/fd#installation
     if ! command -v fd &> /dev/null; then
         echo -e "${INFO}🛠️ Installing fd...${RESET}"
