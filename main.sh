@@ -110,6 +110,12 @@ install_node() {
         nvm install --lts
     fi
     echo -e "${OK}✅ Node.js has been installed.${RESET}"
+
+    if ! command -v pnpm &> /dev/null; then
+        echo -e "${INFO}🛠️ Installing pnpm...${RESET}"
+        curl -fsSL https://get.pnpm.io/install.sh | sh -
+    fi
+    echo -e "${OK}✅ pnpm has been installed.${RESET}"
 }
 install_node
 
