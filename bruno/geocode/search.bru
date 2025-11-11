@@ -1,0 +1,25 @@
+meta {
+  name: search
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://geocode.maps.co/search?street=4700 keele st&city=toronto&country=canada&api_key={{api_key}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  street: 4700 keele st
+  city: toronto
+  country: canada
+  api_key: {{api_key}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+}
