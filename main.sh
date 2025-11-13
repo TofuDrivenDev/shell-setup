@@ -98,7 +98,8 @@ install_package 'bruno' # https://github.com/usebruno/bruno#installation
 
 
 install_node() {
-    if ! command -v nvm &> /dev/null; then
+    # Can't use command -v bcuz nvm is weird
+    if ! [ -n "$NVM_DIR" ] &> /dev/null; then
         echo -e "${INFO}🛠️ Installing NVM...${RESET}"
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
         export NVM_DIR="$HOME/.nvm"
