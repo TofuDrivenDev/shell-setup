@@ -95,6 +95,7 @@ install_package 'jq' # https://github.com/jqlang/jq#installation
 install_package 'fzf' # https://github.com/junegunn/fzf#installation
 install_package 'zoxide' # https://github.com/ajeetdsouza/zoxide#installation
 install_package 'bruno' # https://github.com/usebruno/bruno#installation
+install_package 'zstd' # https://facebook.github.io/zstd/
 
 
 install_node() {
