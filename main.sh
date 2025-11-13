@@ -7,13 +7,45 @@ OK="\033[1;32m" # Green
 ERR="\033[1;31m" # Red
 RESET="\033[0m"
 
+# Determine the package manager based on the OS
+if [[ -f /etc/debian_version ]]; then
+    PKG_MGR="apt"
+    PKG_CMD="sudo apt"
+    PKG_EXIST="dpkg -l"
+elif [[ -f /etc/redhat-release ]]; then
+    PKG_MGR="yum"
+    PKG_CMD="sudo yum -y"
+    PKG_EXIST="yum list installed"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    if ! command -v brew &> /dev/null; then
+        echo -e "${INFO}🛠️ Installing Homebrew...${RESET}"
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+    echo -e "${OK}✅ Homebrew has been installed.${RESET}"
+
+    PKG_MGR="brew"
+    PKG_CMD="brew"
+    PKG_EXIST="brew list"
+else
+    echo "Unsupported OS. Please configure the package manager manually."
+    exit 1
+fi
+echo -e "${INFO}Package manager set to: $PKG_MGR${RESET}"
+
+
+# -u: Update package registry
+if [[ "$1" == "-u" ]]; then
+    echo -e "${INFO}Updating package manager...${RESET}"
+    $PKG_CMD update
+fi
+
+
 # Helper function to check for a command and install a package if it's missing.
 # Usage: install_package <command_to_check> [package_to_install]
 install_package() {
-    local cmd_check="$1"
-    local pkg_name="${2:-$cmd_check}"
+    local pkg_name="$1"
 
-    if ! command -v "$cmd_check" &> /dev/null; then
+    if ! $PKG_EXIST "$pkg_name" &> /dev/null; then
         echo -e "${INFO}🛠️ Installing $pkg_name...${RESET}"
         $PKG_CMD install "$pkg_name"
     fi
@@ -53,36 +85,6 @@ unquarantine_app() {
         echo -e "${OK}✅ Removed $app_path from quarantine.${RESET}"
     fi  
 }
-
-
-# Determine the package manager based on the OS
-if [[ -f /etc/debian_version ]]; then
-    PKG_MGR="apt"
-    PKG_CMD="sudo apt"
-elif [[ -f /etc/redhat-release ]]; then
-    PKG_MGR="yum"
-    PKG_CMD="sudo yum -y"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    if ! command -v brew &> /dev/null; then
-        echo -e "${INFO}🛠️ Installing Homebrew...${RESET}"
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    fi
-    echo -e "${OK}✅ Homebrew has been installed.${RESET}"
-
-    PKG_MGR="brew"
-    PKG_CMD="brew"
-else
-    echo "Unsupported OS. Please configure the package manager manually."
-    exit 1
-fi
-echo -e "${INFO}Package manager set to: $PKG_MGR${RESET}"
-
-
-# Update package registry
-if [[ "$1" == "-u" ]]; then
-    echo -e "${INFO}Updating package manager...${RESET}"
-    $PKG_CMD update
-fi
 
 
 install_package 'tldr' # https://github.com/tldr-pages/tldr#how-do-i-use-it
